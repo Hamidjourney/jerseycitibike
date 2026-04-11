@@ -13,10 +13,12 @@ MONTHLY_TOTALS_JSON = os.path.join(OUT_DIR, "monthly_totals_2025.json")
 TOP_STATIONS_JSON = os.path.join(OUT_DIR, "top_stations_latest.json")
 
 # ---------- Helpers ----------
-def month_url(year: int, month: int) -> str:
+def month_url(year: int, month: int) -> list[str]:
     ym = f"{year}{month:02d}"
-    fname = f"{SYSTEM_PREFIX}-{ym}-citibike-tripdata.csv.zip"
-    return f"{S3_BASE}/{fname}"
+    return [
+        f"{S3_BASE}/{SYSTEM_PREFIX}-{ym}-citibike-tripdata.csv.zip",
+        f"{S3_BASE}/{SYSTEM_PREFIX}-{ym}-citibike-tripdata.zip",
+    ]
 
 def try_fetch_zip(url: str) -> bytes | None:
     r = requests.get(url, timeout=60, stream=True)
@@ -95,22 +97,30 @@ def run():
     month_data = {}  # { "2025-01": DataFrame, ... }
     existing_months = []
     for m in range(1, 13):
-        url = month_url(YEAR, m)
+    urls = month_url(YEAR, m)
+    z = None
+
+    for url in urls:
         print("Checking:", url)
         z = try_fetch_zip(url)
-        if z is None:
-            print(f"  -> not found")
-            continue
-        print(f"  -> found ({len(z)} bytes)")
-        try:
-            df = read_trips_from_zip(z)
-        except Exception as e:
-            print("  -> error reading zip:", e)
-            continue
-        key = f"{YEAR}-{m:02d}"
-        month_data[key] = df
-        existing_months.append(key)
+        if z is not None:
+            print(f"  -> found ({len(z)} bytes)")
+            break
 
+    if z is None:
+        print("  -> not found")
+        continue
+
+    try:
+        df = read_trips_from_zip(z)
+    except Exception as e:
+        print("  -> error reading zip:", e)
+        continue
+
+    key = f"{YEAR}-{m:02d}"
+    month_data[key] = df
+    existing_months.append(key)
+    
     if not existing_months:
         raise RuntimeError("No 2025 monthly files found.")
 
