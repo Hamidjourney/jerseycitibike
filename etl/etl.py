@@ -7,7 +7,7 @@ from datetime import datetime
 # ---------- Config ----------
 SYSTEM_PREFIX = "JC"  # (Jersey City) given your filenames
 YEAR = 2025
-S3_BASE = "https://s3.amazonaws.com/tripdata/index.html"
+S3_BASE = "https://s3.amazonaws.com/tripdata"
 OUT_DIR = os.path.join("docs", "data")
 MONTHLY_TOTALS_JSON = os.path.join(OUT_DIR, "monthly_totals_2025.json")
 TOP_STATIONS_JSON = os.path.join(OUT_DIR, "top_stations_latest.json")
