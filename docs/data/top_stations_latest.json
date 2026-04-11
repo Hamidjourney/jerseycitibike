@@ -1,59 +1,59 @@
 {
-  "latest_month": "2025-09",
+  "latest_month": "2025-12",
   "top5": {
     "starts": {
       "casual": [
         {
-          "station_id": "HB106",
-          "station_name": "River St & Newark St",
-          "trips": 944
-        },
-        {
           "station_id": "HB101",
           "station_name": "Hoboken Terminal - Hudson St & Hudson Pl",
-          "trips": 911
+          "trips": 348
+        },
+        {
+          "station_id": "HB106",
+          "station_name": "River St & Newark St",
+          "trips": 295
         },
         {
           "station_id": "JC115",
           "station_name": "Grove St PATH",
-          "trips": 865
+          "trips": 292
         },
         {
-          "station_id": "HB202",
-          "station_name": "14 St Ferry - 14 St & Shipyard Ln",
-          "trips": 744
+          "station_id": "HB612",
+          "station_name": "Newark St & Washington St",
+          "trips": 191
         },
         {
-          "station_id": "HB502",
-          "station_name": "11 St & Washington St",
-          "trips": 651
+          "station_id": "JC109",
+          "station_name": "Bergen Ave & Sip Ave",
+          "trips": 185
         }
       ],
       "member": [
         {
           "station_id": "JC115",
           "station_name": "Grove St PATH",
-          "trips": 4173
+          "trips": 2106
         },
         {
           "station_id": "HB106",
           "station_name": "River St & Newark St",
-          "trips": 3052
+          "trips": 1530
         },
         {
           "station_id": "HB101",
           "station_name": "Hoboken Terminal - Hudson St & Hudson Pl",
-          "trips": 2162
+          "trips": 1218
         },
         {
-          "station_id": "JC009",
-          "station_name": "Hamilton Park",
-          "trips": 2097
+          "station_id": "JC109",
+          "station_name": "Bergen Ave & Sip Ave",
+          "trips": 1093
         },
         {
-          "station_id": "JC066",
-          "station_name": "Newport PATH",
-          "trips": 1846
+          "station_id": "HB603",
+          "station_name": "8 St & Washington St",
+          "trips": 931
         }
       ]
     },
@@ -62,54 +62,54 @@
         {
           "station_id": "HB101",
           "station_name": "Hoboken Terminal - Hudson St & Hudson Pl",
-          "trips": 980
+          "trips": 344
         },
         {
           "station_id": "HB106",
           "station_name": "River St & Newark St",
-          "trips": 911
-        },
-        {
-          "station_id": "HB202",
-          "station_name": "14 St Ferry - 14 St & Shipyard Ln",
-          "trips": 793
+          "trips": 273
         },
         {
           "station_id": "JC115",
           "station_name": "Grove St PATH",
-          "trips": 767
+          "trips": 239
         },
         {
-          "station_id": "JC052",
-          "station_name": "Liberty Light Rail",
-          "trips": 750
+          "station_id": "JC109",
+          "station_name": "Bergen Ave & Sip Ave",
+          "trips": 222
+        },
+        {
+          "station_id": "HB612",
+          "station_name": "Newark St & Washington St",
+          "trips": 205
         }
       ],
       "member": [
         {
           "station_id": "JC115",
           "station_name": "Grove St PATH",
-          "trips": 4463
+          "trips": 2198
         },
         {
           "station_id": "HB106",
           "station_name": "River St & Newark St",
-          "trips": 3346
+          "trips": 1637
         },
         {
           "station_id": "HB101",
           "station_name": "Hoboken Terminal - Hudson St & Hudson Pl",
-          "trips": 2101
+          "trips": 1227
         },
         {
-          "station_id": "JC009",
-          "station_name": "Hamilton Park",
-          "trips": 2049
+          "station_id": "JC109",
+          "station_name": "Bergen Ave & Sip Ave",
+          "trips": 1022
         },
         {
-          "station_id": "JC066",
-          "station_name": "Newport PATH",
-          "trips": 1850
+          "station_id": "HB603",
+          "station_name": "8 St & Washington St",
+          "trips": 901
         }
       ]
     }
