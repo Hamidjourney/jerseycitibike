@@ -22,9 +22,13 @@ def month_url(year: int, month: int) -> list[str]:
 
 def try_fetch_zip(url: str) -> bytes | None:
     r = requests.get(url, timeout=60, stream=True)
-    if r.status_code == 200 and r.headers.get("Content-Type", "").lower().find("zip") != -1:
+    print(
+        f"    status={r.status_code}, "
+        f"content-type={r.headers.get('Content-Type', '')}, "
+        f"url={url}"
+    )
+    if r.status_code == 200 and "zip" in r.headers.get("Content-Type", "").lower():
         return r.content
-    # Some S3 versions return octet-stream; still accept if 200
     if r.status_code == 200:
         return r.content
     return None
