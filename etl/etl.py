@@ -97,29 +97,28 @@ def run():
     month_data = {}  # { "2025-01": DataFrame, ... }
     existing_months = []
     for m in range(1, 13):
-    urls = month_url(YEAR, m)
-    z = None
+        urls = month_url(YEAR, m)
+        z = None
+        
+        for url in urls:
+            print("Checking:", url)
+            z = try_fetch_zip(url)
+            if z is not None:
+                print(f"  -> found ({len(z)} bytes)")
+                break
+        if z is None:
+            print("  -> not found")
+            continue
 
-    for url in urls:
-        print("Checking:", url)
-        z = try_fetch_zip(url)
-        if z is not None:
-            print(f"  -> found ({len(z)} bytes)")
-            break
+        try:
+            df = read_trips_from_zip(z)
+        except Exception as e:
+            print("  -> error reading zip:", e)
+            continue
 
-    if z is None:
-        print("  -> not found")
-        continue
-
-    try:
-        df = read_trips_from_zip(z)
-    except Exception as e:
-        print("  -> error reading zip:", e)
-        continue
-
-    key = f"{YEAR}-{m:02d}"
-    month_data[key] = df
-    existing_months.append(key)
+        key = f"{YEAR}-{m:02d}"
+        month_data[key] = df
+        existing_months.append(key)
     
     if not existing_months:
         raise RuntimeError("No 2025 monthly files found.")
