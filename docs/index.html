@@ -3,74 +3,73 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Bike Share – 2025 Monthly Totals & Top Stations</title>
+  <title>Jersey City Citi Bike – Monthly Totals & Net Flow</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    :root { --fg:#111; --muted:#666; --bg:#fff; --card:#f7f7f7; }
+    :root { --fg:#111; --muted:#666; --bg:#fff; --card:#f7f7f7; --border:#e1e0d9; }
     html,body { margin:0; padding:0; background:var(--bg); color:var(--fg); font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; }
     .wrap { max-width:1100px; margin: 32px auto; padding: 0 16px; }
     header { margin-bottom: 18px; }
     h1 { font-size: clamp(20px, 3vw, 28px); margin:0 0 4px; }
     .sub { color:var(--muted); font-size:14px; }
-    .grid { display:grid; grid-template-columns: 1.3fr 1fr; gap:20px; align-items:start; }
-    .card { background:var(--card); border-radius:12px; padding:16px; }
-    canvas { width:100%; height:420px; }
-    h2 { margin:0 0 12px; font-size:18px; }
-    .two-cols { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
-    ol { margin: 0; padding-left: 20px; }
-    li { margin: 4px 0; }
-    .kpi { display:flex; gap:16px; flex-wrap:wrap; margin: 10px 0 16px; }
-    .pill { background:#eee; padding:6px 10px; border-radius:999px; font-size:12px; color:#333; }
+    .card { background:var(--card); border-radius:12px; padding:1rem 1.25rem; border:0.5px solid var(--border); }
+    .legend { display:flex; flex-wrap:wrap; gap:16px; margin-bottom:10px; font-size:12px; color:var(--muted); }
+    .legend span { display:flex; align-items:center; gap:4px; }
+    .swatch-box { width:10px; height:10px; border-radius:2px; display:inline-block; }
+    .swatch-line { width:14px; height:2px; display:inline-block; }
+    .flow-cols { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:16px; margin-top:16px; }
+    .flow-card { background:var(--card); border-radius:12px; border:0.5px solid var(--border); padding:1rem 1.25rem; min-width:0; }
+    .flow-title { font-size:12px; font-weight:500; color:var(--muted); margin:0 0 8px; }
+    .section-label { font-size:13px; font-weight:500; color:var(--muted); margin:0 0 4px; }
+    .section-note { font-size:12px; color:var(--muted); margin:0 0 10px; }
+    .error { color:#b00020; font-size:13px; margin-top:8px; }
     footer { margin-top: 22px; color:var(--muted); font-size: 12px; }
-    a { color: inherit; }
-    .error { color: #b00020; }
   </style>
 </head>
 <body>
   <div class="wrap">
     <header>
-      <h1>City Bike – 2025 Monthly Totals & Top Stations</h1>
-      <div id="meta" class="sub">Data updates via GitHub Actions after new monthly files are published.</div>
+      <h1>Jersey City Citi Bike – Monthly Totals & Net Flow</h1>
+      <div class="sub">Data updates via GitHub Actions after new monthly files are published.</div>
     </header>
 
-    <div class="grid">
-      <section class="card">
-        <h2>Monthly Rides (2025)</h2>
-        <div class="kpi">
-          <span id="sum-2025" class="pill">Total 2025 rides: …</span>
-          <span id="months-loaded" class="pill">Months loaded: …</span>
-        </div>
-        <canvas id="barMonthly"></canvas>
-        <div id="bar-error" class="error"></div>
-      </section>
+    <div style="display:flex; flex-direction:column; gap:28px;">
 
-      <section class="card">
-        <h2>Top Stations (Latest Month)</h2>
-        <div class="sub" id="latest-month">Latest month: …</div>
-        <div class="two-cols" style="margin-top:10px;">
-          <div>
-            <strong>Starts — Casual</strong>
-            <ol id="starts-casual"></ol>
+      <div>
+        <p class="section-label">Monthly rides — year over year, with rolling average per year</p>
+        <div class="card">
+          <div class="legend" id="chart-legend"></div>
+          <div style="position:relative; width:100%; height:230px;">
+            <canvas id="chartA" role="img" aria-label="Grouped bar chart of monthly rides by year with a rolling average line for each year">Monthly rides by year with rolling average</canvas>
           </div>
-          <div>
-            <strong>Starts — Member</strong>
-            <ol id="starts-member"></ol>
+          <div id="bar-error" class="error"></div>
+        </div>
+      </div>
+
+      <div>
+        <p class="section-label">Station net flow — latest month</p>
+        <p class="section-note">Positive = bleeder, needs restocking · negative = sink, fills up</p>
+        <div class="flow-cols">
+          <div class="flow-card">
+            <p class="flow-title">Member</p>
+            <div style="position:relative; width:100%; height:230px;">
+              <canvas id="chartMember" role="img" aria-label="Diverging horizontal bar chart of net station flow for member rides">Member net flow by station</canvas>
+            </div>
           </div>
-          <div>
-            <strong>Ends — Casual</strong>
-            <ol id="ends-casual"></ol>
-          </div>
-          <div>
-            <strong>Ends — Member</strong>
-            <ol id="ends-member"></ol>
+          <div class="flow-card">
+            <p class="flow-title">Casual</p>
+            <div style="position:relative; width:100%; height:230px;">
+              <canvas id="chartCasual" role="img" aria-label="Diverging horizontal bar chart of net station flow for casual rides">Casual net flow by station</canvas>
+            </div>
           </div>
         </div>
-        <div id="top-error" class="error"></div>
-      </section>
+        <div id="flow-error" class="error"></div>
+      </div>
+
     </div>
 
     <footer>
-      Built with Chart.js on GitHub Pages. Data files: <code>docs/data/monthly_totals_2025.json</code>, <code>docs/data/top_stations_latest.json</code>.
+      Built with Chart.js on GitHub Pages. Data files: <code>docs/data/monthly_totals.json</code>, <code>docs/data/top_stations_latest.json</code>.
     </footer>
   </div>
 
@@ -81,47 +80,92 @@ async function fetchJSON(path) {
   return res.json();
 }
 
-function formatList(list, el) {
-  el.innerHTML = "";
-  list.forEach(item => {
-    const li = document.createElement("li");
-    const name = item.station_name || "Unknown";
-    const trips = Number(item.trips || 0).toLocaleString();
-    li.textContent = `${name} — ${trips}`;
-    el.appendChild(li);
+function rollingAvg(arr, w) {
+  return arr.map((_, i) => {
+    const s = Math.max(0, i - w + 1);
+    const slice = arr.slice(s, i + 1).filter(v => v != null);
+    if (!slice.length) return null;
+    return Math.round(slice.reduce((a, b) => a + b, 0) / slice.length);
+  });
+}
+
+function flowChart(id, rows) {
+  const sorted = [...rows].sort((a, b) => b.net - a.net);
+  const labels = sorted.map(r => r.station_name || "Unknown");
+  const values = sorted.map(r => r.net);
+  new Chart(document.getElementById(id), {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        backgroundColor: values.map(v => v >= 0 ? "#2a78d6" : "#e34948"),
+        borderRadius: 4
+      }]
+    },
+    options: {
+      indexAxis: "y",
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: "#e1e0d9" }, ticks: { callback: v => (v > 0 ? "+" : "") + v } },
+        y: { grid: { display: false }, ticks: { font: { size: 11 } } }
+      }
+    }
   });
 }
 
 (async () => {
-  // 1) Monthly totals bar chart
+  // Monthly rides chart with per-year rolling average
   try {
-    const monthly = await fetchJSON("./data/monthly_totals_2025.json");
-    const byMonth = monthly.sort((a,b) => a.month.localeCompare(b.month));
-    const labels = byMonth.map(r => r.month);
-    const values = byMonth.map(r => r.rides);
+    const monthly = await fetchJSON("./data/monthly_totals.json");
+    const byMonth = monthly.slice().sort((a, b) => a.month.localeCompare(b.month));
 
-    const sum = values.reduce((a,b) => a + (Number(b)||0), 0);
-    document.getElementById("sum-2025").textContent = "Total 2025 rides: " + sum.toLocaleString();
-    document.getElementById("months-loaded").textContent = "Months loaded: " + values.length;
+    const years = [...new Set(byMonth.map(r => r.month.slice(0, 4)))].sort();
+    const monthLabels = ["01","02","03","04","05","06","07","08","09","10","11","12"];
+    const barPalette = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100"];
+    const linePalette = ["#0c447c", "#993c1d", "#0f6e56", "#854f0b"];
+    const dashPalette = [[], [5,4], [2,2], [6,3]];
+    const barColors = {}, lineColors = {}, dash = {};
+    years.forEach((y, i) => {
+      barColors[y] = barPalette[i % barPalette.length];
+      lineColors[y] = linePalette[i % linePalette.length];
+      dash[y] = dashPalette[i % dashPalette.length];
+    });
 
-    const ctx = document.getElementById("barMonthly");
-    new Chart(ctx, {
+    const datasets = [];
+    years.forEach(y => {
+      const data = monthLabels.map(m => {
+        const row = byMonth.find(r => r.month === `${y}-${m}`);
+        return row ? row.rides : null;
+      });
+      datasets.push({ label: y, data, backgroundColor: barColors[y], borderRadius: 4, order: 3, type: "bar" });
+      datasets.push({
+        label: y + " avg", data: rollingAvg(data, 3), type: "line",
+        borderColor: lineColors[y], borderDash: dash[y], borderWidth: 2,
+        pointRadius: 0, order: 1, fill: false
+      });
+    });
+
+    const legendEl = document.getElementById("chart-legend");
+    years.forEach(y => {
+      legendEl.innerHTML += `<span><span class="swatch-box" style="background:${barColors[y]}"></span>${y}</span>`;
+    });
+    years.forEach(y => {
+      legendEl.innerHTML += `<span><span class="swatch-line" style="background:${lineColors[y]}"></span>${y} avg</span>`;
+    });
+
+    new Chart(document.getElementById("chartA"), {
       type: "bar",
-      data: {
-        labels,
-        datasets: [{
-          label: "Rides per month (2025)",
-          data: values
-        }]
-      },
+      data: { labels: monthLabels, datasets },
       options: {
         responsive: true,
-        plugins: {
-          legend: { display: true }
-        },
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
         scales: {
-          x: { ticks: { maxRotation: 0 } },
-          y: { beginAtZero: true }
+          x: { ticks: { autoSkip: false, maxRotation: 0 }, grid: { display: false } },
+          y: { ticks: { callback: v => (v / 1000) + "k" }, grid: { color: "#e1e0d9" } }
         }
       }
     });
@@ -129,17 +173,14 @@ function formatList(list, el) {
     document.getElementById("bar-error").textContent = String(err);
   }
 
-  // 2) Top 5 stations lists
+  // Net flow charts, member vs casual
   try {
     const tops = await fetchJSON("./data/top_stations_latest.json");
-    document.getElementById("latest-month").textContent = "Latest month: " + (tops.latest_month || "n/a");
-
-    formatList((tops.top5?.starts?.casual)||[], document.getElementById("starts-casual"));
-    formatList((tops.top5?.starts?.member)||[], document.getElementById("starts-member"));
-    formatList((tops.top5?.ends?.casual)||[], document.getElementById("ends-casual"));
-    formatList((tops.top5?.ends?.member)||[], document.getElementById("ends-member"));
+    const netFlow = tops.net_flow || {};
+    if (netFlow.member) flowChart("chartMember", netFlow.member);
+    if (netFlow.casual) flowChart("chartCasual", netFlow.casual);
   } catch (err) {
-    document.getElementById("top-error").textContent = String(err);
+    document.getElementById("flow-error").textContent = String(err);
   }
 })();
 </script>
