@@ -115,7 +115,10 @@ def run():
 
     existing = load_existing_totals()
     months_to_check = list(month_range_forward(START_YEAR, START_MONTH))
-    latest_key = f"{months_to_check[-1][0]}-{months_to_check[-1][1]:02d}"
+    # Force-refetch the last 2 months in the checked range (cheap), since we
+    # don't know in advance which of them is actually published yet, and we
+    # always want a real DataFrame in hand for whichever one turns out latest.
+    force_refetch_keys = {f"{y}-{m:02d}" for (y, m) in months_to_check[-2:]}
 
     monthly_rows = []
     latest_df = None
@@ -123,12 +126,12 @@ def run():
 
     for (year, month) in months_to_check:
         key = f"{year}-{month:02d}"
-        is_latest = (key == latest_key)
 
-        # Skip refetching months we already have, UNLESS it's the current/latest
-        # month (Citi Bike sometimes republishes the current month with corrections),
-        # or we also need the raw month for top-station / net-flow computation.
-        if key in existing and not is_latest:
+        # Skip refetching months we already have, UNLESS it's one of the
+        # last 2 in range (Citi Bike sometimes republishes recent months with
+        # corrections, and we need the raw month in memory to compute
+        # top-station / net-flow stats for whichever one is truly latest).
+        if key in existing and key not in force_refetch_keys:
             monthly_rows.append(existing[key])
             continue
 
@@ -141,12 +144,16 @@ def run():
                 break
         if z is None:
             print("  -> not found (not yet published)")
+            if key in existing:
+                monthly_rows.append(existing[key])
             continue
 
         try:
             df = read_trips_from_zip(z, year, month)
         except Exception as e:
             print("  -> error reading zip:", e)
+            if key in existing:
+                monthly_rows.append(existing[key])
             continue
 
         member_trips = int((df["member_casual"] == "member").sum())
@@ -159,9 +166,10 @@ def run():
             "casual": casual_trips,
         })
 
-        if is_latest:
-            latest_df = df
-            latest_month_key = key
+        # Months are processed in ascending chronological order, so the last
+        # one that successfully fetches is the latest actually-published month.
+        latest_df = df
+        latest_month_key = key
 
     # Preserve chronological order, de-dup by month key (latest write wins)
     dedup = {r["month"]: r for r in monthly_rows}
