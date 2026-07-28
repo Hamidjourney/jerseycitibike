@@ -1,0 +1,110 @@
+[
+  {
+    "month": "2025-01",
+    "rides": 50609,
+    "member": 43879,
+    "casual": 6730
+  },
+  {
+    "month": "2025-02",
+    "rides": 45253,
+    "member": 39341,
+    "casual": 5912
+  },
+  {
+    "month": "2025-03",
+    "rides": 73289,
+    "member": 59812,
+    "casual": 13477
+  },
+  {
+    "month": "2025-04",
+    "rides": 81552,
+    "member": 64130,
+    "casual": 17422
+  },
+  {
+    "month": "2025-05",
+    "rides": 93222,
+    "member": 69857,
+    "casual": 23365
+  },
+  {
+    "month": "2025-06",
+    "rides": 97114,
+    "member": 72759,
+    "casual": 24355
+  },
+  {
+    "month": "2025-07",
+    "rides": 107712,
+    "member": 79560,
+    "casual": 28152
+  },
+  {
+    "month": "2025-08",
+    "rides": 108440,
+    "member": 79560,
+    "casual": 28880
+  },
+  {
+    "month": "2025-09",
+    "rides": 116055,
+    "member": 87764,
+    "casual": 28291
+  },
+  {
+    "month": "2025-10",
+    "rides": 104189,
+    "member": 80786,
+    "casual": 23403
+  },
+  {
+    "month": "2025-11",
+    "rides": 76706,
+    "member": 62069,
+    "casual": 14637
+  },
+  {
+    "month": "2025-12",
+    "rides": 48472,
+    "member": 40831,
+    "casual": 7641
+  },
+  {
+    "month": "2026-01",
+    "rides": 40031,
+    "member": 34556,
+    "casual": 5475
+  },
+  {
+    "month": "2026-02",
+    "rides": 25803,
+    "member": 22256,
+    "casual": 3547
+  },
+  {
+    "month": "2026-03",
+    "rides": 62362,
+    "member": 50386,
+    "casual": 11976
+  },
+  {
+    "month": "2026-04",
+    "rides": 82272,
+    "member": 64306,
+    "casual": 17966
+  },
+  {
+    "month": "2026-05",
+    "rides": 95332,
+    "member": 71517,
+    "casual": 23815
+  },
+  {
+    "month": "2026-06",
+    "rides": 109888,
+    "member": 79450,
+    "casual": 30438
+  }
+]
