@@ -1,59 +1,59 @@
 {
-  "latest_month": "2025-12",
+  "latest_month": "2026-06",
   "top5": {
     "starts": {
       "casual": [
         {
-          "station_id": "HB101",
-          "station_name": "Hoboken Terminal - Hudson St & Hudson Pl",
-          "trips": 348
+          "station_id": "JC115",
+          "station_name": "Grove St PATH",
+          "trips": 1081
         },
         {
           "station_id": "HB106",
           "station_name": "River St & Newark St",
-          "trips": 295
+          "trips": 990
         },
         {
-          "station_id": "JC115",
-          "station_name": "Grove St PATH",
-          "trips": 292
+          "station_id": "HB101",
+          "station_name": "Hoboken Terminal - Hudson St & Hudson Pl",
+          "trips": 908
         },
         {
-          "station_id": "HB612",
-          "station_name": "Newark St & Washington St",
-          "trips": 191
+          "station_id": "HB201",
+          "station_name": "12 St & Sinatra Dr N",
+          "trips": 850
         },
         {
-          "station_id": "JC109",
-          "station_name": "Bergen Ave & Sip Ave",
-          "trips": 185
+          "station_id": "HB103",
+          "station_name": "South Waterfront Walkway - Sinatra Dr & 1 St",
+          "trips": 823
         }
       ],
       "member": [
         {
           "station_id": "JC115",
           "station_name": "Grove St PATH",
-          "trips": 2106
+          "trips": 4171
         },
         {
           "station_id": "HB106",
           "station_name": "River St & Newark St",
-          "trips": 1530
-        },
-        {
-          "station_id": "HB101",
-          "station_name": "Hoboken Terminal - Hudson St & Hudson Pl",
-          "trips": 1218
+          "trips": 2713
         },
         {
           "station_id": "JC109",
           "station_name": "Bergen Ave & Sip Ave",
-          "trips": 1093
+          "trips": 2054
         },
         {
-          "station_id": "HB603",
-          "station_name": "8 St & Washington St",
-          "trips": 931
+          "station_id": "JC009",
+          "station_name": "Hamilton Park",
+          "trips": 1786
+        },
+        {
+          "station_id": "HB101",
+          "station_name": "Hoboken Terminal - Hudson St & Hudson Pl",
+          "trips": 1719
         }
       ]
     },
@@ -62,56 +62,162 @@
         {
           "station_id": "HB101",
           "station_name": "Hoboken Terminal - Hudson St & Hudson Pl",
-          "trips": 344
+          "trips": 945
         },
         {
-          "station_id": "HB106",
-          "station_name": "River St & Newark St",
-          "trips": 273
+          "station_id": "HB201",
+          "station_name": "12 St & Sinatra Dr N",
+          "trips": 945
         },
         {
           "station_id": "JC115",
           "station_name": "Grove St PATH",
-          "trips": 239
+          "trips": 941
         },
         {
-          "station_id": "JC109",
-          "station_name": "Bergen Ave & Sip Ave",
-          "trips": 222
+          "station_id": "HB106",
+          "station_name": "River St & Newark St",
+          "trips": 875
         },
         {
-          "station_id": "HB612",
-          "station_name": "Newark St & Washington St",
-          "trips": 205
+          "station_id": "HB103",
+          "station_name": "South Waterfront Walkway - Sinatra Dr & 1 St",
+          "trips": 847
         }
       ],
       "member": [
         {
           "station_id": "JC115",
           "station_name": "Grove St PATH",
-          "trips": 2198
+          "trips": 4323
         },
         {
           "station_id": "HB106",
           "station_name": "River St & Newark St",
-          "trips": 1637
-        },
-        {
-          "station_id": "HB101",
-          "station_name": "Hoboken Terminal - Hudson St & Hudson Pl",
-          "trips": 1227
+          "trips": 3003
         },
         {
           "station_id": "JC109",
           "station_name": "Bergen Ave & Sip Ave",
-          "trips": 1022
+          "trips": 1901
         },
         {
-          "station_id": "HB603",
-          "station_name": "8 St & Washington St",
-          "trips": 901
+          "station_id": "JC009",
+          "station_name": "Hamilton Park",
+          "trips": 1791
+        },
+        {
+          "station_id": "JC116",
+          "station_name": "Exchange Pl",
+          "trips": 1691
         }
       ]
     }
+  },
+  "net_flow": {
+    "casual": [
+      {
+        "station_id": "JC115",
+        "station_name": "Grove St PATH",
+        "net": 140
+      },
+      {
+        "station_id": "HB106",
+        "station_name": "River St & Newark St",
+        "net": 115
+      },
+      {
+        "station_id": "JC116",
+        "station_name": "Exchange Pl",
+        "net": 110
+      },
+      {
+        "station_id": "JC055",
+        "station_name": "McGinley Square",
+        "net": 90
+      },
+      {
+        "station_id": "HB402",
+        "station_name": "Madison St & 1 St",
+        "net": 65
+      },
+      {
+        "station_id": "HB302",
+        "station_name": "6 St & Grand St",
+        "net": 59
+      },
+      {
+        "station_id": "JC019",
+        "station_name": "Hilltop",
+        "net": 56
+      },
+      {
+        "station_id": "HB609",
+        "station_name": "River St & 1 St",
+        "net": 53
+      },
+      {
+        "station_id": "HB602",
+        "station_name": "Stevens - River Ter & 6 St",
+        "net": 48
+      },
+      {
+        "station_id": "JC022",
+        "station_name": "Oakland Ave",
+        "net": 46
+      }
+    ],
+    "member": [
+      {
+        "station_id": "JC022",
+        "station_name": "Oakland Ave",
+        "net": 186
+      },
+      {
+        "station_id": "JC109",
+        "station_name": "Bergen Ave & Sip Ave",
+        "net": 153
+      },
+      {
+        "station_id": "HB201",
+        "station_name": "12 St & Sinatra Dr N",
+        "net": 102
+      },
+      {
+        "station_id": "HB105",
+        "station_name": "City Hall - Washington St & 1 St",
+        "net": 80
+      },
+      {
+        "station_id": "HB203",
+        "station_name": "Bloomfield St & 15 St",
+        "net": 77
+      },
+      {
+        "station_id": "HB501",
+        "station_name": "Columbus Park - Clinton St & 9 St",
+        "net": 77
+      },
+      {
+        "station_id": "HB103",
+        "station_name": "South Waterfront Walkway - Sinatra Dr & 1 St",
+        "net": 61
+      },
+      {
+        "station_id": "HB304",
+        "station_name": "7 St & Monroe St",
+        "net": 58
+      },
+      {
+        "station_id": "JC117",
+        "station_name": "Dr. Lena Edwards Park",
+        "net": 58
+      },
+      {
+        "station_id": "HB202",
+        "station_name": "14 St Ferry - 14 St & Shipyard Ln",
+        "net": 57
+      }
+    ]
   }
 }
