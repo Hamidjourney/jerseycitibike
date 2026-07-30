@@ -142,29 +142,29 @@
         "net": 65
       },
       {
-        "station_id": "HB302",
-        "station_name": "6 St & Grand St",
-        "net": 59
+        "station_id": "HB501",
+        "station_name": "Columbus Park - Clinton St & 9 St",
+        "net": -75
       },
       {
-        "station_id": "JC019",
-        "station_name": "Hilltop",
-        "net": 56
+        "station_id": "HB105",
+        "station_name": "City Hall - Washington St & 1 St",
+        "net": -77
       },
       {
-        "station_id": "HB609",
-        "station_name": "River St & 1 St",
-        "net": 53
+        "station_id": "JC109",
+        "station_name": "Bergen Ave & Sip Ave",
+        "net": -85
       },
       {
-        "station_id": "HB602",
-        "station_name": "Stevens - River Ter & 6 St",
-        "net": 48
+        "station_id": "HB201",
+        "station_name": "12 St & Sinatra Dr N",
+        "net": -95
       },
       {
-        "station_id": "JC022",
-        "station_name": "Oakland Ave",
-        "net": 46
+        "station_id": "0",
+        "station_name": "0",
+        "net": -177
       }
     ],
     "member": [
@@ -194,29 +194,29 @@
         "net": 77
       },
       {
-        "station_id": "HB501",
-        "station_name": "Columbus Park - Clinton St & 9 St",
-        "net": 77
+        "station_id": "HB402",
+        "station_name": "Madison St & 1 St",
+        "net": -70
       },
       {
-        "station_id": "HB103",
-        "station_name": "South Waterfront Walkway - Sinatra Dr & 1 St",
-        "net": 61
+        "station_id": "JC116",
+        "station_name": "Exchange Pl",
+        "net": -84
       },
       {
-        "station_id": "HB304",
-        "station_name": "7 St & Monroe St",
-        "net": 58
+        "station_id": "JC115",
+        "station_name": "Grove St PATH",
+        "net": -152
       },
       {
-        "station_id": "JC117",
-        "station_name": "Dr. Lena Edwards Park",
-        "net": 58
+        "station_id": "0",
+        "station_name": "0",
+        "net": -172
       },
       {
-        "station_id": "HB202",
-        "station_name": "14 St Ferry - 14 St & Shipyard Ln",
-        "net": 57
+        "station_id": "HB106",
+        "station_name": "River St & Newark St",
+        "net": -290
       }
     ]
   }
