@@ -74,15 +74,22 @@ def top5(grouped: pd.DataFrame) -> list[dict]:
         })
     return out
 
-def net_flow(starts: pd.DataFrame, ends: pd.DataFrame) -> list[dict]:
+def net_flow(starts: pd.DataFrame, ends: pd.DataFrame, top_n: int = 5) -> list[dict]:
     # starts/ends: columns ['station_id','station_name','trips']
     merged = pd.merge(
         starts, ends, on=["station_id", "station_name"], how="outer", suffixes=("_start", "_end")
     ).fillna(0)
     merged["net"] = merged["trips_start"] - merged["trips_end"]
     merged = merged.sort_values("net", ascending=False)
+
+    bleeders = merged.head(top_n)   # most positive: net exporters, need restocking
+    sinks = merged.tail(top_n)      # most negative: net importers, fill up
+    # Guard against overlap if there are fewer than 2*top_n stations total
+    combined = pd.concat([bleeders, sinks]).drop_duplicates(subset=["station_id", "station_name"])
+    combined = combined.sort_values("net", ascending=False)
+
     out = []
-    for _, row in merged.iterrows():
+    for _, row in combined.iterrows():
         out.append({
             "station_id": safe_name(row.get("station_id")),
             "station_name": safe_name(row.get("station_name")),
@@ -202,7 +209,7 @@ def run():
 
         result["top5"].setdefault("starts", {})[rider_type] = top5(starts)
         result["top5"].setdefault("ends", {})[rider_type] = top5(ends)
-        result["net_flow"][rider_type] = net_flow(starts, ends)[:10]  # top 10 by net magnitude
+        result["net_flow"][rider_type] = net_flow(starts, ends)  # top 5 bleeders + bottom 5 sinks
 
     with open(TOP_STATIONS_JSON, "w", encoding="utf-8") as f:
         json.dump(result, f, ensure_ascii=False, indent=2)
