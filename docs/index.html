@@ -177,8 +177,19 @@ function flowChart(id, rows) {
   try {
     const tops = await fetchJSON("./data/top_stations_latest.json");
     const netFlow = tops.net_flow || {};
-    if (netFlow.member) flowChart("chartMember", netFlow.member);
-    if (netFlow.casual) flowChart("chartCasual", netFlow.casual);
+    if (netFlow.member && netFlow.member.length) {
+      flowChart("chartMember", netFlow.member);
+    } else {
+      document.getElementById("flow-error").textContent =
+        "No member net-flow data found in top_stations_latest.json yet.";
+    }
+    if (netFlow.casual && netFlow.casual.length) {
+      flowChart("chartCasual", netFlow.casual);
+    } else {
+      document.getElementById("flow-error").textContent +=
+        (document.getElementById("flow-error").textContent ? " " : "") +
+        "No casual net-flow data found in top_stations_latest.json yet.";
+    }
   } catch (err) {
     document.getElementById("flow-error").textContent = String(err);
   }
