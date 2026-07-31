@@ -77,7 +77,7 @@
         {
           "station_id": "HB106",
           "station_name": "River St & Newark St",
-          "trips": 875
+          "trips": 877
         },
         {
           "station_id": "HB103",
@@ -94,7 +94,7 @@
         {
           "station_id": "HB106",
           "station_name": "River St & Newark St",
-          "trips": 3003
+          "trips": 3011
         },
         {
           "station_id": "JC109",
@@ -124,7 +124,7 @@
       {
         "station_id": "HB106",
         "station_name": "River St & Newark St",
-        "net": 115
+        "net": 113
       },
       {
         "station_id": "JC116",
@@ -140,6 +140,11 @@
         "station_id": "HB402",
         "station_name": "Madison St & 1 St",
         "net": 65
+      },
+      {
+        "station_id": "HB203",
+        "station_name": "Bloomfield St & 15 St",
+        "net": -67
       },
       {
         "station_id": "HB501",
@@ -160,11 +165,6 @@
         "station_id": "HB201",
         "station_name": "12 St & Sinatra Dr N",
         "net": -95
-      },
-      {
-        "station_id": "0",
-        "station_name": "0",
-        "net": -177
       }
     ],
     "member": [
@@ -189,9 +189,14 @@
         "net": 80
       },
       {
-        "station_id": "HB203",
-        "station_name": "Bloomfield St & 15 St",
+        "station_id": "HB501",
+        "station_name": "Columbus Park - Clinton St & 9 St",
         "net": 77
+      },
+      {
+        "station_id": "JC035",
+        "station_name": "Van Vorst Park",
+        "net": -46
       },
       {
         "station_id": "HB402",
@@ -209,14 +214,9 @@
         "net": -152
       },
       {
-        "station_id": "0",
-        "station_name": "0",
-        "net": -172
-      },
-      {
         "station_id": "HB106",
         "station_name": "River St & Newark St",
-        "net": -290
+        "net": -298
       }
     ]
   }
