@@ -5,13 +5,21 @@ import pandas as pd
 from datetime import datetime, timezone
 
 # ---------- Config ----------
-SYSTEM_PREFIX = "JC"  # Jersey City
+SYSTEM_PREFIX = "JC"  # Jersey City (used only for the S3 filename)
 START_YEAR = 2025
 START_MONTH = 1
 S3_BASE = "https://s3.amazonaws.com/tripdata"
 OUT_DIR = os.path.join("docs", "data")
 MONTHLY_TOTALS_JSON = os.path.join(OUT_DIR, "monthly_totals.json")
 TOP_STATIONS_JSON = os.path.join(OUT_DIR, "top_stations_latest.json")
+
+# Station id prefixes that belong to the actual JC/Hoboken system. Trips can
+# start or end at out-of-system stations (e.g. NYC stations, which use plain
+# numeric ids like "5216.04") when a bike is picked up in one system and
+# dropped in another. Those are excluded from station-level rankings, but
+# still counted in the plain monthly totals above.
+NJ_ID_PATTERN = r"^(JC|HB)"
+
 
 # ---------- Helpers ----------
 def month_url(year: int, month: int) -> list[str]:
@@ -21,6 +29,7 @@ def month_url(year: int, month: int) -> list[str]:
         f"{S3_BASE}/{SYSTEM_PREFIX}-{ym}-citibike-tripdata.zip",
     ]
 
+
 def try_fetch_zip(url: str) -> bytes | None:
     r = requests.get(url, timeout=60, stream=True)
     print(f"    status={r.status_code}, content-type={r.headers.get('Content-Type','')}, url={url}")
@@ -28,6 +37,7 @@ def try_fetch_zip(url: str) -> bytes | None:
     if r.status_code == 200 and ("zip" in ctype or "octet-stream" in ctype):
         return r.content
     return None
+
 
 def read_trips_from_zip(zbytes: bytes, year: int, month: int) -> pd.DataFrame:
     with zipfile.ZipFile(io.BytesIO(zbytes)) as zf:
@@ -58,11 +68,57 @@ def read_trips_from_zip(zbytes: bytes, year: int, month: int) -> pd.DataFrame:
         df = df[(df["started_at"].dt.year == year) & (df["started_at"].dt.month == month)]
     return df
 
+
 def safe_name(s) -> str:
     if s is None or (isinstance(s, float) and pd.isna(s)):
         return "Unknown"
     s = str(s)
     return "Unknown" if s.lower() == "nan" else s
+
+
+# ---------- Station identity resolution ----------
+# A trip row can have a station name with a blank id, or (less commonly) an
+# id with a blank name. Grouping directly on the raw columns fragments those
+# rows into their own "partial" groups instead of folding into the real
+# station's counts. To fix this we build one canonical id<->name reference
+# from the month's data (station appears with complete data on at least one
+# side, most of the time), then fill in whichever side is missing before any
+# counting happens.
+def build_station_reference(df: pd.DataFrame):
+    starts = df[["start_station_id", "start_station_name"]].rename(
+        columns={"start_station_id": "station_id", "start_station_name": "station_name"}
+    )
+    ends = df[["end_station_id", "end_station_name"]].rename(
+        columns={"end_station_id": "station_id", "end_station_name": "station_name"}
+    )
+    combined = pd.concat([starts, ends], ignore_index=True).dropna().drop_duplicates()
+
+    name_to_id = combined.drop_duplicates("station_name").set_index("station_name")["station_id"]
+    id_to_name = combined.drop_duplicates("station_id").set_index("station_id")["station_name"]
+    return name_to_id, id_to_name
+
+
+def resolve_station_ids(df: pd.DataFrame, name_to_id: pd.Series):
+    start_id = df["start_station_id"].copy()
+    mask = start_id.isna() & df["start_station_name"].notna()
+    start_id[mask] = df.loc[mask, "start_station_name"].map(name_to_id)
+
+    end_id = df["end_station_id"].copy()
+    mask = end_id.isna() & df["end_station_name"].notna()
+    end_id[mask] = df.loc[mask, "end_station_name"].map(name_to_id)
+
+    return start_id, end_id
+
+
+def grouped_counts(resolved_ids: pd.Series, id_to_name: pd.Series) -> pd.DataFrame:
+    """Count trips per resolved station_id. Rows where the id could not be
+    resolved at all (id and name both blank on that side) are dropped —
+    there is nothing to attribute them to."""
+    counts = resolved_ids.dropna().value_counts().rename("trips").reset_index()
+    counts.columns = ["station_id", "trips"]
+    counts["station_name"] = counts["station_id"].map(id_to_name)
+    return counts
+
 
 def top5(grouped: pd.DataFrame) -> list[dict]:
     out = []
@@ -74,18 +130,28 @@ def top5(grouped: pd.DataFrame) -> list[dict]:
         })
     return out
 
+
 def net_flow(starts: pd.DataFrame, ends: pd.DataFrame, top_n: int = 5) -> list[dict]:
     # starts/ends: columns ['station_id','station_name','trips']
+    # Join on station_id only — joining on station_id + station_name (as
+    # before) can silently fail to match a station's starts to its ends if
+    # the name differs even slightly between the two sides.
     merged = pd.merge(
-        starts, ends, on=["station_id", "station_name"], how="outer", suffixes=("_start", "_end")
-    ).fillna(0)
+        starts, ends, on="station_id", how="outer", suffixes=("_start", "_end")
+    )
+    merged["trips_start"] = merged["trips_start"].fillna(0)
+    merged["trips_end"] = merged["trips_end"].fillna(0)
+    merged["station_name"] = merged["station_name_start"].combine_first(merged["station_name_end"])
+
+    # Sign convention unchanged: positive = net exporter ("bleeder", needs
+    # restocking), negative = net importer ("sink", fills up).
     merged["net"] = merged["trips_start"] - merged["trips_end"]
     merged = merged.sort_values("net", ascending=False)
 
     bleeders = merged.head(top_n)   # most positive: net exporters, need restocking
     sinks = merged.tail(top_n)      # most negative: net importers, fill up
     # Guard against overlap if there are fewer than 2*top_n stations total
-    combined = pd.concat([bleeders, sinks]).drop_duplicates(subset=["station_id", "station_name"])
+    combined = pd.concat([bleeders, sinks]).drop_duplicates(subset=["station_id"])
     combined = combined.sort_values("net", ascending=False)
 
     out = []
@@ -96,6 +162,7 @@ def net_flow(starts: pd.DataFrame, ends: pd.DataFrame, top_n: int = 5) -> list[d
             "net": int(row["net"]),
         })
     return out
+
 
 def month_range_forward(start_year: int, start_month: int):
     """Yield (year, month) tuples from start up to the current UTC month, inclusive."""
@@ -108,6 +175,7 @@ def month_range_forward(start_year: int, start_month: int):
             m = 1
             y += 1
 
+
 def load_existing_totals() -> dict:
     """Return {'2025-01': rides_count_int_or_dict, ...} from prior run, if present."""
     if os.path.exists(MONTHLY_TOTALS_JSON):
@@ -116,12 +184,13 @@ def load_existing_totals() -> dict:
         return {r["month"]: r for r in rows}
     return {}
 
+
 # ---------- Main ETL ----------
 def run():
     os.makedirs(OUT_DIR, exist_ok=True)
-
     existing = load_existing_totals()
     months_to_check = list(month_range_forward(START_YEAR, START_MONTH))
+
     # Force-refetch the last 2 months in the checked range (cheap), since we
     # don't know in advance which of them is actually published yet, and we
     # always want a real DataFrame in hand for whichever one turns out latest.
@@ -149,6 +218,7 @@ def run():
             if z is not None:
                 print(f"  -> found ({len(z)} bytes)")
                 break
+
         if z is None:
             print("  -> not found (not yet published)")
             if key in existing:
@@ -165,7 +235,6 @@ def run():
 
         member_trips = int((df["member_casual"] == "member").sum())
         casual_trips = int((df["member_casual"] == "casual").sum())
-
         monthly_rows.append({
             "month": key,
             "rides": int(len(df)),
@@ -193,19 +262,28 @@ def run():
     df_latest = latest_df.copy()
     df_latest["member_casual"] = df_latest["member_casual"].fillna("unknown").str.lower()
 
-    def grouped_counts(df, col_id, col_name):
-        return (
-            df.groupby([col_id, col_name], dropna=False)
-            .size().reset_index(name="trips")
-            .rename(columns={col_id: "station_id", col_name: "station_name"})
-        )
+    # Build one canonical station id<->name reference from this month's data,
+    # then resolve start/end station ids for every row (filling in a blank
+    # id from the name when possible). This is done once, up front, for the
+    # whole month — not separately per rider type.
+    name_to_id, id_to_name = build_station_reference(df_latest)
+    start_id_resolved, end_id_resolved = resolve_station_ids(df_latest, name_to_id)
+    df_latest = df_latest.assign(
+        _start_id_resolved=start_id_resolved,
+        _end_id_resolved=end_id_resolved,
+    )
 
     result = {"latest_month": latest_month_key, "top5": {}, "net_flow": {}}
 
     for rider_type in ("casual", "member"):
         sub = df_latest[df_latest["member_casual"] == rider_type]
-        starts = grouped_counts(sub, "start_station_id", "start_station_name")
-        ends = grouped_counts(sub, "end_station_id", "end_station_name")
+
+        starts = grouped_counts(sub["_start_id_resolved"], id_to_name)
+        ends = grouped_counts(sub["_end_id_resolved"], id_to_name)
+
+        # Restrict station-level rankings to in-system (JC/HB) stations only.
+        starts = starts[starts["station_id"].astype(str).str.match(NJ_ID_PATTERN)]
+        ends = ends[ends["station_id"].astype(str).str.match(NJ_ID_PATTERN)]
 
         result["top5"].setdefault("starts", {})[rider_type] = top5(starts)
         result["top5"].setdefault("ends", {})[rider_type] = top5(ends)
@@ -214,6 +292,7 @@ def run():
     with open(TOP_STATIONS_JSON, "w", encoding="utf-8") as f:
         json.dump(result, f, ensure_ascii=False, indent=2)
     print(f"Wrote {TOP_STATIONS_JSON}")
+
 
 if __name__ == "__main__":
     run()
