@@ -32,9 +32,7 @@
       <h1>Jersey City Citi Bike – Monthly Totals & Net Flow</h1>
       <div class="sub">Data updates via GitHub Actions after new monthly files are published.</div>
     </header>
-
     <div style="display:flex; flex-direction:column; gap:28px;">
-
       <div>
         <p class="section-label">Monthly rides — year over year, with rolling average per year</p>
         <div class="card">
@@ -45,7 +43,6 @@
           <div id="bar-error" class="error"></div>
         </div>
       </div>
-
       <div>
         <p class="section-label">Station net flow — latest month</p>
         <p class="section-note">Positive = bleeder, needs restocking · negative = sink, fills up</p>
@@ -65,21 +62,17 @@
         </div>
         <div id="flow-error" class="error"></div>
       </div>
-
     </div>
-
     <footer>
       Built with Chart.js on GitHub Pages. Data files: <code>docs/data/monthly_totals.json</code>, <code>docs/data/top_stations_latest.json</code>.
     </footer>
   </div>
-
 <script>
 async function fetchJSON(path) {
   const res = await fetch(path + "?_=" + Date.now());
   if (!res.ok) throw new Error("HTTP " + res.status + " for " + path);
   return res.json();
 }
-
 function rollingAvg(arr, w) {
   return arr.map((_, i) => {
     const s = Math.max(0, i - w + 1);
@@ -88,7 +81,6 @@ function rollingAvg(arr, w) {
     return Math.round(slice.reduce((a, b) => a + b, 0) / slice.length);
   });
 }
-
 function flowChart(id, rows) {
   const sorted = [...rows].sort((a, b) => b.net - a.net);
   const labels = sorted.map(r => r.station_name || "Unknown");
@@ -99,7 +91,7 @@ function flowChart(id, rows) {
       labels,
       datasets: [{
         data: values,
-        backgroundColor: values.map(v => v >= 0 ? "#2a78d6" : "#e34948"),
+        backgroundColor: values.map(v => v >= 0 ? "#0e9594" : "#d1495b"),
         borderRadius: 4
       }]
     },
@@ -115,13 +107,11 @@ function flowChart(id, rows) {
     }
   });
 }
-
 (async () => {
   // Monthly rides chart with per-year rolling average
   try {
     const monthly = await fetchJSON("./data/monthly_totals.json");
     const byMonth = monthly.slice().sort((a, b) => a.month.localeCompare(b.month));
-
     const years = [...new Set(byMonth.map(r => r.month.slice(0, 4)))].sort();
     const monthLabels = ["01","02","03","04","05","06","07","08","09","10","11","12"];
     const barPalette = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100"];
@@ -133,7 +123,6 @@ function flowChart(id, rows) {
       lineColors[y] = linePalette[i % linePalette.length];
       dash[y] = dashPalette[i % dashPalette.length];
     });
-
     const datasets = [];
     years.forEach(y => {
       const data = monthLabels.map(m => {
@@ -147,7 +136,6 @@ function flowChart(id, rows) {
         pointRadius: 0, order: 1, fill: false
       });
     });
-
     const legendEl = document.getElementById("chart-legend");
     years.forEach(y => {
       legendEl.innerHTML += `<span><span class="swatch-box" style="background:${barColors[y]}"></span>${y}</span>`;
@@ -155,7 +143,6 @@ function flowChart(id, rows) {
     years.forEach(y => {
       legendEl.innerHTML += `<span><span class="swatch-line" style="background:${lineColors[y]}"></span>${y} avg</span>`;
     });
-
     new Chart(document.getElementById("chartA"), {
       type: "bar",
       data: { labels: monthLabels, datasets },
@@ -172,7 +159,6 @@ function flowChart(id, rows) {
   } catch (err) {
     document.getElementById("bar-error").textContent = String(err);
   }
-
   // Net flow charts, member vs casual
   try {
     const tops = await fetchJSON("./data/top_stations_latest.json");
