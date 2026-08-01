@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Jersey City Citi Bike – Monthly Totals & Net Flow</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <style>
     :root { --fg:#111; --muted:#666; --bg:#fff; --card:#f7f7f7; --border:#e1e0d9; }
     html,body { margin:0; padding:0; background:var(--bg); color:var(--fg); font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; }
@@ -33,6 +34,22 @@
       <div class="sub">Data updates via GitHub Actions after new monthly files are published.</div>
     </header>
     <div style="display:flex; flex-direction:column; gap:28px;">
+      <div>
+        <p class="section-label">Station inventory trajectory — pick a station and day</p>
+        <div class="card">
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
+            <select id="invStationSel"></select>
+            <select id="invDaySel"></select>
+          </div>
+          <div style="position:relative; width:100%; height:260px;">
+            <canvas id="chartInventory" role="img" aria-label="Line chart of station inventory trajectory across an operations day, shaded green above zero and red below zero">Station inventory trajectory</canvas>
+          </div>
+          <div style="display:flex; align-items:center; gap:6px; margin-top:10px; font-size:12px; color:var(--muted);">
+            <span style="width:14px; height:2px; background:#111827; display:inline-block;"></span>Actual trajectory
+          </div>
+          <div id="inventory-error" class="error"></div>
+        </div>
+      </div>
       <div>
         <p class="section-label">Monthly rides — year over year, with rolling average per year</p>
         <div class="card">
@@ -73,6 +90,12 @@ async function fetchJSON(path) {
   if (!res.ok) throw new Error("HTTP " + res.status + " for " + path);
   return res.json();
 }
+async function fetchText(path) {
+  const res = await fetch(path + "?_=" + Date.now());
+  if (!res.ok) throw new Error("HTTP " + res.status + " for " + path);
+  return res.text();
+}
+function pad2(n) { return String(n).padStart(2, "0"); }
 function rollingAvg(arr, w) {
   return arr.map((_, i) => {
     const s = Math.max(0, i - w + 1);
@@ -108,6 +131,103 @@ function flowChart(id, rows) {
   });
 }
 (async () => {
+  // Station inventory trajectory (station + day dropdowns, side by side)
+  try {
+    const csvText = await fetchText("./data/inventory_latest.csv");
+    const parsed = Papa.parse(csvText, { header: true, dynamicTyping: true, skipEmptyLines: true });
+    const rows = parsed.data;
+
+    const stations = {};
+    rows.forEach(r => {
+      if (r.station_id == null || r.op_date == null) return;
+      if (!stations[r.station_id]) stations[r.station_id] = { name: r.station_name, days: {} };
+      const day = String(r.op_date);
+      if (!stations[r.station_id].days[day]) stations[r.station_id].days[day] = [];
+      stations[r.station_id].days[day].push({
+        time: pad2(r.hour) + ":" + pad2(r.minute),
+        cumulative: r.daily_cumulative
+      });
+    });
+
+    const stationIds = Object.keys(stations).sort();
+    const stationSel = document.getElementById("invStationSel");
+    const daySel = document.getElementById("invDaySel");
+
+    stationIds.forEach(sid => {
+      const opt = document.createElement("option");
+      opt.value = sid;
+      opt.textContent = stations[sid].name || sid;
+      stationSel.appendChild(opt);
+    });
+
+    function populateDays(sid) {
+      daySel.innerHTML = "";
+      Object.keys(stations[sid].days).sort().forEach(d => {
+        const opt = document.createElement("option");
+        opt.value = d;
+        opt.textContent = d;
+        daySel.appendChild(opt);
+      });
+    }
+
+    const invChart = new Chart(document.getElementById("chartInventory"), {
+      type: "line",
+      data: {
+        labels: [],
+        datasets: [
+          { label: "Positive fill", data: [], borderWidth: 0, backgroundColor: "rgba(99,153,34,0.18)", pointRadius: 0, fill: "origin", tension: 0.25 },
+          { label: "Negative fill", data: [], borderWidth: 0, backgroundColor: "rgba(227,73,72,0.18)", pointRadius: 0, fill: "origin", tension: 0.25 },
+          { label: "Actual trajectory", data: [], borderColor: "#111827", backgroundColor: "transparent", borderWidth: 2, pointRadius: 0, fill: false, tension: 0.25 }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { autoSkip: true, maxTicksLimit: 8 }, grid: { display: false } },
+          y: {
+            grid: { color: c => (c.tick.value === 0 ? "#b9b8ae" : "#e1e0d9") },
+            ticks: { callback: v => (v > 0 ? "+" : "") + v }
+          }
+        }
+      }
+    });
+
+    function renderInventory() {
+      const sid = stationSel.value;
+      const day = daySel.value;
+      const pts = (stations[sid] && stations[sid].days[day]) || [];
+      const pos = pts.map(p => (p.cumulative >= 0 ? p.cumulative : 0));
+      const neg = pts.map(p => (p.cumulative <= 0 ? p.cumulative : 0));
+      const raw = pts.map(p => p.cumulative);
+
+      let maxAbs = 1;
+      pts.forEach(p => { maxAbs = Math.max(maxAbs, Math.abs(p.cumulative)); });
+      const bound = Math.ceil(maxAbs * 1.2);
+
+      invChart.data.labels = pts.map(p => p.time);
+      invChart.data.datasets[0].data = pos;
+      invChart.data.datasets[1].data = neg;
+      invChart.data.datasets[2].data = raw;
+      invChart.options.scales.y.min = -bound;
+      invChart.options.scales.y.max = bound;
+      invChart.update("none");
+    }
+
+    stationSel.addEventListener("change", () => { populateDays(stationSel.value); renderInventory(); });
+    daySel.addEventListener("change", renderInventory);
+
+    if (stationIds.length) {
+      populateDays(stationIds[0]);
+      renderInventory();
+    } else {
+      document.getElementById("inventory-error").textContent = "No inventory data found in inventory_latest.csv yet.";
+    }
+  } catch (err) {
+    document.getElementById("inventory-error").textContent = String(err);
+  }
+
   // Monthly rides chart with per-year rolling average
   try {
     const monthly = await fetchJSON("./data/monthly_totals.json");
