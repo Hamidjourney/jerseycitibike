@@ -20,6 +20,19 @@
     .swatch-line { width:14px; height:2px; display:inline-block; }
     .flow-cols { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:16px; margin-top:16px; }
     .top-row { display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:16px; }
+    select {
+      font-family: inherit;
+      font-size: 13px;
+      padding: 4px 8px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--fg);
+    }
+    select:focus {
+      outline: 2px solid #9ca3af;
+      outline-offset: 1px;
+    }
     .flow-card { background:var(--card); border-radius:12px; border:0.5px solid var(--border); padding:1rem 1.25rem; min-width:0; }
     .flow-title { font-size:12px; font-weight:500; color:var(--muted); margin:0 0 8px; }
     .section-label { font-size:13px; font-weight:500; color:var(--muted); margin:0 0 4px; }
