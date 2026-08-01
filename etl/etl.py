@@ -256,8 +256,29 @@ def run():
         json.dump(monthly_rows, f, ensure_ascii=False, indent=2)
     print(f"Wrote {MONTHLY_TOTALS_JSON} with {len(monthly_rows)} rows")
 
+    # If nothing new was published this run, still re-fetch the most recent
+    # known month so top5/net_flow/inventory can be (re)computed — raw trip
+    # data isn't cached between runs, only the aggregated monthly totals are.
+    if latest_df is None and monthly_rows:
+        fallback_key = max(r["month"] for r in monthly_rows)
+        fb_year, fb_month = (int(p) for p in fallback_key.split("-"))
+        print(f"No new month published this run; re-fetching {fallback_key} to compute station stats.")
+        z = None
+        for url in month_url(fb_year, fb_month):
+            print("Checking:", url)
+            z = try_fetch_zip(url)
+            if z is not None:
+                print(f"  -> found ({len(z)} bytes)")
+                break
+        if z is not None:
+            try:
+                latest_df = read_trips_from_zip(z, fb_year, fb_month)
+                latest_month_key = fallback_key
+            except Exception as e:
+                print("  -> error reading zip:", e)
+
     if latest_df is None:
-        print("No new latest-month data fetched this run; leaving top_stations file untouched.")
+        print("No latest-month data available this run; leaving top_stations/inventory files untouched.")
         return
 
     df_latest = latest_df.copy()
