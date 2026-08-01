@@ -19,6 +19,7 @@
     .swatch-box { width:10px; height:10px; border-radius:2px; display:inline-block; }
     .swatch-line { width:14px; height:2px; display:inline-block; }
     .flow-cols { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:16px; margin-top:16px; }
+    .top-row { display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:16px; }
     .flow-card { background:var(--card); border-radius:12px; border:0.5px solid var(--border); padding:1rem 1.25rem; min-width:0; }
     .flow-title { font-size:12px; font-weight:500; color:var(--muted); margin:0 0 8px; }
     .section-label { font-size:13px; font-weight:500; color:var(--muted); margin:0 0 4px; }
@@ -34,30 +35,32 @@
       <div class="sub">Data updates via GitHub Actions after new monthly files are published.</div>
     </header>
     <div style="display:flex; flex-direction:column; gap:28px;">
-      <div>
-        <p class="section-label">Station inventory trajectory — pick a station and day</p>
-        <div class="card">
-          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
-            <select id="invStationSel"></select>
-            <select id="invDaySel"></select>
+      <div class="top-row">
+        <div>
+          <p class="section-label">Station inventory trajectory — pick a station and day</p>
+          <div class="card">
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
+              <select id="invStationSel"></select>
+              <select id="invDaySel"></select>
+            </div>
+            <div style="position:relative; width:100%; height:150px;">
+              <canvas id="chartInventory" role="img" aria-label="Line chart of station inventory trajectory across an operations day, shaded green above zero and red below zero">Station inventory trajectory</canvas>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px; margin-top:10px; font-size:12px; color:var(--muted);">
+              <span style="width:14px; height:2px; background:#111827; display:inline-block;"></span>Actual trajectory
+            </div>
+            <div id="inventory-error" class="error"></div>
           </div>
-          <div style="position:relative; width:100%; height:260px;">
-            <canvas id="chartInventory" role="img" aria-label="Line chart of station inventory trajectory across an operations day, shaded green above zero and red below zero">Station inventory trajectory</canvas>
-          </div>
-          <div style="display:flex; align-items:center; gap:6px; margin-top:10px; font-size:12px; color:var(--muted);">
-            <span style="width:14px; height:2px; background:#111827; display:inline-block;"></span>Actual trajectory
-          </div>
-          <div id="inventory-error" class="error"></div>
         </div>
-      </div>
-      <div>
-        <p class="section-label">Monthly rides — year over year, with rolling average per year</p>
-        <div class="card">
-          <div class="legend" id="chart-legend"></div>
-          <div style="position:relative; width:100%; height:230px;">
-            <canvas id="chartA" role="img" aria-label="Grouped bar chart of monthly rides by year with a rolling average line for each year">Monthly rides by year with rolling average</canvas>
+        <div>
+          <p class="section-label">Monthly rides — year over year, with rolling average per year</p>
+          <div class="card">
+            <div class="legend" id="chart-legend"></div>
+            <div style="position:relative; width:100%; height:150px;">
+              <canvas id="chartA" role="img" aria-label="Grouped bar chart of monthly rides by year with a rolling average line for each year">Monthly rides by year with rolling average</canvas>
+            </div>
+            <div id="bar-error" class="error"></div>
           </div>
-          <div id="bar-error" class="error"></div>
         </div>
       </div>
       <div>
