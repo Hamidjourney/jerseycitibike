@@ -12,6 +12,7 @@ S3_BASE = "https://s3.amazonaws.com/tripdata"
 OUT_DIR = os.path.join("docs", "data")
 MONTHLY_TOTALS_JSON = os.path.join(OUT_DIR, "monthly_totals.json")
 TOP_STATIONS_JSON = os.path.join(OUT_DIR, "top_stations_latest.json")
+INVENTORY_CSV = os.path.join(OUT_DIR, "inventory_latest.csv")
 
 # Station id prefixes that belong to the actual JC/Hoboken system. Trips can
 # start or end at out-of-system stations (e.g. NYC stations, which use plain
@@ -292,6 +293,60 @@ def run():
     with open(TOP_STATIONS_JSON, "w", encoding="utf-8") as f:
         json.dump(result, f, ensure_ascii=False, indent=2)
     print(f"Wrote {TOP_STATIONS_JSON}")
+
+    # ---- Inventory trajectory table (per selected station, 15-min buckets) ----
+    # Reuses name_to_id / id_to_name / the resolved id columns already built
+    # above for top5/net_flow — nothing read from disk, since GitHub Actions
+    # only ever has whatever this run fetched, never a local CSV.
+
+    # Next phase: a pipeline will supply this list of station names instead
+    # of it being hardcoded here.
+    selected_station_names = [
+        "River St & Newark St",
+        "McGinley Square",
+    ]
+    selected_station_ids = [name_to_id[name] for name in selected_station_names]
+
+    interval = "15min"
+    interval_frames = []
+
+    for sid in selected_station_ids:
+        pickup_ts = (
+            df_latest[df_latest["_start_id_resolved"] == sid]
+            .groupby(pd.Grouper(key="started_at", freq=interval))
+            .size()
+            .rename("pickups")
+        )
+        return_ts = (
+            df_latest[df_latest["_end_id_resolved"] == sid]
+            .groupby(pd.Grouper(key="ended_at", freq=interval))
+            .size()
+            .rename("returns")
+        )
+        pickup_ts.index.name = "datetime"
+        return_ts.index.name = "datetime"
+
+        ts = pd.concat([pickup_ts, return_ts], axis=1).fillna(0)
+        ts["net_flow"] = ts["returns"] - ts["pickups"]
+        ts["station_id"] = sid
+        ts["station_name"] = id_to_name[sid]
+        ts["date"] = ts.index.date
+        ts["hour"] = ts.index.hour
+        ts["minute"] = ts.index.minute
+        ts["op_date"] = (ts.index - pd.Timedelta(hours=5)).date
+        ts["daily_cumulative"] = ts.groupby("op_date")["net_flow"].cumsum()
+
+        interval_frames.append(ts.reset_index())
+
+    interval_flow = pd.concat(interval_frames, ignore_index=True)
+
+    # ---- Save interval_flow for the dashboard ----
+    # Flat CSV, latest month only — this table is large and purely tabular
+    # (no real nesting need), so it's far more compact than the equivalent
+    # JSON, and this file is fully overwritten each run (like TOP_STATIONS_JSON,
+    # not accumulated like MONTHLY_TOTALS_JSON).
+    interval_flow.to_csv(INVENTORY_CSV, index=False)
+    print(f"Wrote {INVENTORY_CSV} with {len(interval_flow)} rows")
 
 
 if __name__ == "__main__":
