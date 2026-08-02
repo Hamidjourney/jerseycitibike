@@ -315,54 +315,6 @@ def run():
         json.dump(result, f, ensure_ascii=False, indent=2)
     print(f"Wrote {TOP_STATIONS_JSON}")
 
-    # ---- Complete the first operations day of the month ----
-    # The first ~5 hours of the month (00:00-04:59) belong, under the 5am
-    # operations-day convention, to the LAST calendar day of the PREVIOUS
-    # month — but that day's other ~19 hours live in the previous month's
-    # zip, which this run doesn't otherwise fetch. Pull in just that prior
-    # calendar day so the first operations day isn't a near-empty stub.
-    latest_year, latest_month = (int(p) for p in latest_month_key.split("-"))
-    if latest_month == 1:
-        prev_year, prev_month = latest_year - 1, 12
-    else:
-        prev_year, prev_month = latest_year, latest_month - 1
-
-    prev_z = None
-    for url in month_url(prev_year, prev_month):
-        print("Checking:", url)
-        prev_z = try_fetch_zip(url)
-        if prev_z is not None:
-            print(f"  -> found ({len(prev_z)} bytes)")
-            break
-
-    interval_source = df_latest
-    prev_tail = None
-    last_day_of_prev_month = (pd.Timestamp(latest_year, latest_month, 1) - pd.Timedelta(days=1)).date()
-    if prev_z is not None:
-        try:
-            prev_df = read_trips_from_zip(prev_z, prev_year, prev_month)
-            prev_df["member_casual"] = prev_df["member_casual"].fillna("unknown").str.lower()
-
-            prev_tail = prev_df[
-                (prev_df["started_at"].dt.date == last_day_of_prev_month)
-                | (prev_df["ended_at"].dt.date == last_day_of_prev_month)
-            ]
-
-            if len(prev_tail):
-                # Reuse the same name_to_id lookup built from the full current
-                # month, rather than a separate one from this small slice.
-                prev_start_id, prev_end_id = resolve_station_ids(prev_tail, name_to_id)
-                prev_tail = prev_tail.assign(
-                    _start_id_resolved=prev_start_id,
-                    _end_id_resolved=prev_end_id,
-                )
-                interval_source = pd.concat([prev_tail, df_latest], ignore_index=True)
-                print(f"Stitched in {len(prev_tail)} rows from {prev_year}-{prev_month:02d} to complete the first operations day.")
-        except Exception as e:
-            print("  -> error reading previous month zip for stitching:", e)
-    else:
-        print("  -> previous month not found; first operations day of this month may be incomplete.")
-
     # ---- Inventory trajectory table (per selected station, 15-min buckets) ----
     # Reuses name_to_id / id_to_name / the resolved id columns already built
     # above for top5/net_flow — nothing read from disk, since GitHub Actions
@@ -381,13 +333,13 @@ def run():
 
     for sid in selected_station_ids:
         pickup_ts = (
-            interval_source[interval_source["_start_id_resolved"] == sid]
+            df_latest[df_latest["_start_id_resolved"] == sid]
             .groupby(pd.Grouper(key="started_at", freq=interval))
             .size()
             .rename("pickups")
         )
         return_ts = (
-            interval_source[interval_source["_end_id_resolved"] == sid]
+            df_latest[df_latest["_end_id_resolved"] == sid]
             .groupby(pd.Grouper(key="ended_at", freq=interval))
             .size()
             .rename("returns")
@@ -409,11 +361,13 @@ def run():
 
     interval_flow = pd.concat(interval_frames, ignore_index=True)
 
-    # Only keep operations days from the completed boundary day onward —
-    # drops the now-redundant earlier stub from prev_tail's own 00:00-04:59
-    # slice, which belongs to an even earlier day we didn't stitch in.
-    if prev_tail is not None and len(prev_tail):
-        interval_flow = interval_flow[interval_flow["op_date"] >= last_day_of_prev_month]
+    # Drop the partial first operations day. Its 00:00-04:59 timestamps
+    # belong, under the 5am operations-day convention, to the last calendar
+    # day of the PREVIOUS month — but this run only has the current month's
+    # data, so that day would only ever show a near-empty ~5-hour stub.
+    latest_year, latest_month = (int(p) for p in latest_month_key.split("-"))
+    first_day_of_month = pd.Timestamp(latest_year, latest_month, 1).date()
+    interval_flow = interval_flow[interval_flow["op_date"] >= first_day_of_month]
 
     # ---- Save interval_flow for the dashboard ----
     # Flat CSV, latest month only — this table is large and purely tabular
