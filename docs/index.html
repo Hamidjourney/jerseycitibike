@@ -59,10 +59,11 @@
               <select id="invDaySel"></select>
             </div>
             <div style="position:relative; width:100%; height:150px;">
-              <canvas id="chartInventory" role="img" aria-label="Line chart of station inventory trajectory across an operations day, shaded green above zero and red below zero">Station inventory trajectory</canvas>
+              <canvas id="chartInventory" role="img" aria-label="Line chart of estimated station inventory across an operations day, with a capacity line and a bolded zero line, shaded red when below zero or above capacity and green otherwise">Station inventory trajectory</canvas>
             </div>
-            <div style="display:flex; align-items:center; gap:6px; margin-top:10px; font-size:12px; color:var(--muted);">
-              <span style="width:14px; height:2px; background:#111827; display:inline-block;"></span>Actual trajectory
+            <div style="display:flex; align-items:center; gap:16px; margin-top:10px; font-size:12px; color:var(--muted);">
+              <span style="display:flex; align-items:center; gap:6px;"><span style="width:14px; height:2px; background:#111827; display:inline-block;"></span>Actual trajectory</span>
+              <span style="display:flex; align-items:center; gap:6px;"><span style="width:14px; height:0; border-top:2px dashed #ba7517; display:inline-block;"></span><span id="invCapacityText">Capacity</span></span>
             </div>
             <div id="inventory-error" class="error"></div>
           </div>
@@ -158,7 +159,14 @@ function flowChart(id, rows) {
     const stations = {};
     rows.forEach(r => {
       if (r.station_id == null || r.op_date == null) return;
-      if (!stations[r.station_id]) stations[r.station_id] = { name: r.station_name, days: {} };
+      if (!stations[r.station_id]) {
+        stations[r.station_id] = {
+          name: r.station_name,
+          capacity: r.capacity,
+          baseline: r.baseline,
+          days: {}
+        };
+      }
       const day = String(r.op_date);
       if (!stations[r.station_id].days[day]) stations[r.station_id].days[day] = [];
       stations[r.station_id].days[day].push({
@@ -193,8 +201,10 @@ function flowChart(id, rows) {
       data: {
         labels: [],
         datasets: [
-          { label: "Positive fill", data: [], borderWidth: 0, backgroundColor: "rgba(99,153,34,0.18)", pointRadius: 0, fill: "origin", tension: 0.25 },
-          { label: "Negative fill", data: [], borderWidth: 0, backgroundColor: "rgba(227,73,72,0.18)", pointRadius: 0, fill: "origin", tension: 0.25 },
+          { label: "Capacity", data: [], borderColor: "#ba7517", backgroundColor: "transparent", borderWidth: 2, borderDash: [6, 4], pointRadius: 0, fill: false },
+          { label: "In-bounds fill", data: [], borderWidth: 0, backgroundColor: "rgba(99,153,34,0.18)", pointRadius: 0, fill: "origin", tension: 0.25 },
+          { label: "Below-zero fill", data: [], borderWidth: 0, backgroundColor: "rgba(227,73,72,0.18)", pointRadius: 0, fill: "origin", tension: 0.25 },
+          { label: "Above-capacity fill", data: [], borderWidth: 0, backgroundColor: "rgba(227,73,72,0.18)", pointRadius: 0, fill: 0, tension: 0.25 },
           { label: "Actual trajectory", data: [], borderColor: "#111827", backgroundColor: "transparent", borderWidth: 2, pointRadius: 0, fill: false, tension: 0.25 }
         ]
       },
@@ -205,7 +215,10 @@ function flowChart(id, rows) {
         scales: {
           x: { ticks: { autoSkip: true, maxTicksLimit: 8 }, grid: { display: false } },
           y: {
-            grid: { color: c => (c.tick.value === 0 ? "#b9b8ae" : "#e1e0d9") },
+            grid: {
+              color: c => (c.tick.value === 0 ? "#3d3d3a" : "#e1e0d9"),
+              lineWidth: c => (c.tick.value === 0 ? 2 : 1)
+            },
             ticks: { callback: v => (v > 0 ? "+" : "") + v }
           }
         }
@@ -215,22 +228,36 @@ function flowChart(id, rows) {
     function renderInventory() {
       const sid = stationSel.value;
       const day = daySel.value;
-      const pts = (stations[sid] && stations[sid].days[day]) || [];
-      const pos = pts.map(p => (p.cumulative >= 0 ? p.cumulative : 0));
-      const neg = pts.map(p => (p.cumulative <= 0 ? p.cumulative : 0));
-      const raw = pts.map(p => p.cumulative);
+      const st = stations[sid] || {};
+      const capacity = st.capacity != null ? st.capacity : 0;
+      const baseline = st.baseline != null ? st.baseline : 0;
+      const pts = (st.days && st.days[day]) || [];
 
-      let maxAbs = 1;
-      pts.forEach(p => { maxAbs = Math.max(maxAbs, Math.abs(p.cumulative)); });
-      const bound = Math.ceil(maxAbs * 1.2);
+      const raw = pts.map(p => p.cumulative + baseline);
+      const inBounds = raw.map(v => Math.max(0, Math.min(v, capacity)));
+      const belowZero = raw.map(v => (v < 0 ? v : 0));
+      const aboveCap = raw.map(v => (v > capacity ? v : capacity));
+
+      let dataMin = 0, dataMax = 0;
+      if (raw.length) {
+        dataMin = Math.min(...raw);
+        dataMax = Math.max(...raw);
+      }
+      const yMin = Math.min(-2, Math.floor(dataMin) - 2);
+      const yMax = Math.max(capacity + 2, Math.ceil(dataMax) + 2);
 
       invChart.data.labels = pts.map(p => p.time);
-      invChart.data.datasets[0].data = pos;
-      invChart.data.datasets[1].data = neg;
-      invChart.data.datasets[2].data = raw;
-      invChart.options.scales.y.min = -bound;
-      invChart.options.scales.y.max = bound;
+      invChart.data.datasets[0].data = pts.map(() => capacity);
+      invChart.data.datasets[1].data = inBounds;
+      invChart.data.datasets[2].data = belowZero;
+      invChart.data.datasets[3].data = aboveCap;
+      invChart.data.datasets[4].data = raw;
+      invChart.options.scales.y.min = yMin;
+      invChart.options.scales.y.max = yMax;
       invChart.update("none");
+
+      const capText = document.getElementById("invCapacityText");
+      if (capText) capText.textContent = "Capacity (" + capacity + ")";
     }
 
     stationSel.addEventListener("change", () => { populateDays(stationSel.value); renderInventory(); });
