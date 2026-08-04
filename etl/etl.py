@@ -361,6 +361,14 @@ def run():
         ts["op_date"] = (ts.index - pd.Timedelta(hours=5)).date
         ts["daily_cumulative"] = ts.groupby("op_date")["net_flow"].cumsum()
 
+        # Precompute the bounds status per bucket, so the dashboard doesn't
+        # need to re-derive the out-of-bounds definition itself. Absolute
+        # estimated bike count = baseline + daily_cumulative.
+        absolute = ts["baseline"] + ts["daily_cumulative"]
+        ts["status"] = "in_bounds"
+        ts.loc[absolute > ts["capacity"], "status"] = "over_capacity"
+        ts.loc[absolute < 0, "status"] = "below_zero"
+
         interval_frames.append(ts.reset_index())
 
     interval_flow = pd.concat(interval_frames, ignore_index=True)
