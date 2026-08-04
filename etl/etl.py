@@ -326,7 +326,7 @@ def run():
     # McGinley Square; a test assumption for Clinton St & 7 St, to revisit).
     selected_stations = {
         "JC055": {"capacity": 22, "baseline": 21},  # McGinley Square
-        "HB303": {"capacity": 18, "baseline": 12},  # Clinton St & 7 St
+        "HB303": {"capacity": 18, "baseline": 11},  # Clinton St & 7 St
     }
     selected_station_ids = list(selected_stations.keys())
 
