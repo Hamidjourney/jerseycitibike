@@ -320,13 +320,15 @@ def run():
     # above for top5/net_flow — nothing read from disk, since GitHub Actions
     # only ever has whatever this run fetched, never a local CSV.
 
-    # Next phase: a pipeline will supply this list of station names instead
-    # of it being hardcoded here.
-    selected_station_names = [
-        "River St & Newark St",
-        "McGinley Square",
-    ]
-    selected_station_ids = [name_to_id[name] for name in selected_station_names]
+    # Next phase: a pipeline will supply this station config instead of it
+    # being hardcoded here. Capacity is from the GBFS station_information
+    # feed; baseline is an assumed bike count at 05:00 (data-checked for
+    # McGinley Square; a test assumption for Clinton St & 7 St, to revisit).
+    selected_stations = {
+        "JC055": {"capacity": 22, "baseline": 21},  # McGinley Square
+        "HB303": {"capacity": 18, "baseline": 10},  # Clinton St & 7 St
+    }
+    selected_station_ids = list(selected_stations.keys())
 
     interval = "15min"
     interval_frames = []
@@ -350,7 +352,9 @@ def run():
         ts = pd.concat([pickup_ts, return_ts], axis=1).fillna(0)
         ts["net_flow"] = ts["returns"] - ts["pickups"]
         ts["station_id"] = sid
-        ts["station_name"] = id_to_name[sid]
+        ts["station_name"] = id_to_name.get(sid, sid)
+        ts["capacity"] = selected_stations[sid]["capacity"]
+        ts["baseline"] = selected_stations[sid]["baseline"]
         ts["date"] = ts.index.date
         ts["hour"] = ts.index.hour
         ts["minute"] = ts.index.minute
