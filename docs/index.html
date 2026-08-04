@@ -58,12 +58,31 @@
               <select id="invStationSel"></select>
               <select id="invDaySel"></select>
             </div>
-            <div style="position:relative; width:100%; height:150px;">
-              <canvas id="chartInventory" role="img" aria-label="Line chart of estimated station inventory across an operations day, with a capacity line and a bolded zero line, shaded red when below zero or above capacity and green otherwise">Station inventory trajectory</canvas>
-            </div>
-            <div style="display:flex; align-items:center; gap:16px; margin-top:10px; font-size:12px; color:var(--muted);">
-              <span style="display:flex; align-items:center; gap:6px;"><span style="width:14px; height:2px; background:#111827; display:inline-block;"></span>Actual trajectory</span>
-              <span style="display:flex; align-items:center; gap:6px;"><span style="width:14px; height:0; border-top:2px dashed #ba7517; display:inline-block;"></span><span id="invCapacityText">Capacity</span></span>
+            <div style="display:grid; grid-template-columns: 2fr 1fr; gap:14px; align-items:stretch;">
+              <div>
+                <div style="position:relative; width:100%; height:150px;">
+                  <canvas id="chartInventory" role="img" aria-label="Line chart of estimated station inventory across an operations day, with a capacity line and a bolded zero line, shaded red when below zero or above capacity and green otherwise">Station inventory trajectory</canvas>
+                </div>
+                <div style="display:flex; align-items:center; gap:16px; margin-top:10px; font-size:12px; color:var(--muted);">
+                  <span style="display:flex; align-items:center; gap:6px;"><span style="width:14px; height:2px; background:#111827; display:inline-block;"></span>Actual trajectory</span>
+                  <span style="display:flex; align-items:center; gap:6px;"><span style="width:14px; height:0; border-top:2px dashed #ba7517; display:inline-block;"></span><span id="invCapacityText">Capacity</span></span>
+                </div>
+              </div>
+              <div style="background:#fff; border-radius:8px; padding:0.75rem; display:flex; flex-direction:column; justify-content:center;">
+                <div style="font-size:12px; color:var(--muted); margin-bottom:6px;">Minimum days needing intervention</div>
+                <div id="invStatNumber" style="font-size:28px; font-weight:600; color:var(--fg);">–</div>
+                <div style="font-size:12px; color:var(--muted); margin-top:2px; margin-bottom:12px;">in the latest month</div>
+                <div style="display:flex; flex-direction:column; gap:6px; font-size:12px; color:var(--muted);">
+                  <div style="display:flex; align-items:center; justify-content:space-between;">
+                    <span style="display:flex; align-items:center; gap:6px;"><span style="width:8px; height:8px; border-radius:2px; background:#ba7517; display:inline-block;"></span>Over capacity</span>
+                    <span id="invStatOver" style="font-weight:600; color:var(--fg);">–</span>
+                  </div>
+                  <div style="display:flex; align-items:center; justify-content:space-between;">
+                    <span style="display:flex; align-items:center; gap:6px;"><span style="width:8px; height:8px; border-radius:2px; background:#d1495b; display:inline-block;"></span>Below zero</span>
+                    <span id="invStatUnder" style="font-weight:600; color:var(--fg);">–</span>
+                  </div>
+                </div>
+              </div>
             </div>
             <div id="inventory-error" class="error"></div>
           </div>
@@ -171,7 +190,8 @@ function flowChart(id, rows) {
       if (!stations[r.station_id].days[day]) stations[r.station_id].days[day] = [];
       stations[r.station_id].days[day].push({
         time: pad2(r.hour) + ":" + pad2(r.minute),
-        cumulative: r.daily_cumulative
+        cumulative: r.daily_cumulative,
+        status: r.status
       });
     });
 
@@ -260,12 +280,31 @@ function flowChart(id, rows) {
       if (capText) capText.textContent = "Capacity (" + capacity + ")";
     }
 
-    stationSel.addEventListener("change", () => { populateDays(stationSel.value); renderInventory(); });
+    function renderStat() {
+      const sid = stationSel.value;
+      const st = stations[sid];
+      if (!st) return;
+      let overDays = 0, underDays = 0, flaggedDays = 0;
+      Object.keys(st.days).forEach(day => {
+        const pts = st.days[day];
+        const hasOver = pts.some(p => p.status === "over_capacity");
+        const hasUnder = pts.some(p => p.status === "below_zero");
+        if (hasOver) overDays++;
+        if (hasUnder) underDays++;
+        if (hasOver || hasUnder) flaggedDays++;
+      });
+      document.getElementById("invStatNumber").textContent = flaggedDays;
+      document.getElementById("invStatOver").textContent = overDays;
+      document.getElementById("invStatUnder").textContent = underDays;
+    }
+
+    stationSel.addEventListener("change", () => { populateDays(stationSel.value); renderInventory(); renderStat(); });
     daySel.addEventListener("change", renderInventory);
 
     if (stationIds.length) {
       populateDays(stationIds[0]);
       renderInventory();
+      renderStat();
     } else {
       document.getElementById("inventory-error").textContent = "No inventory data found in inventory_latest.csv yet.";
     }
