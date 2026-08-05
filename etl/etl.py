@@ -325,7 +325,7 @@ def run():
     # feed; baseline is an assumed bike count at 05:00 (data-checked for
     # McGinley Square; a test assumption for Clinton St & 7 St, to revisit).
     selected_stations = {
-        "JC055": {"capacity": 22, "baseline": 21},  # McGinley Square
+        "JC055": {"capacity": 22, "baseline": 15},  # McGinley Square
         "HB303": {"capacity": 18, "baseline": 12},  # Clinton St & 7 St
     }
     selected_station_ids = list(selected_stations.keys())
