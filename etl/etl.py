@@ -186,6 +186,28 @@ def load_existing_totals() -> dict:
     return {}
 
 
+def find_optimal_baseline(daily_cumulative_by_day: dict, capacity: int) -> tuple[int, dict]:
+    """Search every whole-number baseline from capacity down to 0, counting
+    how many days that month would be flagged (baseline + daily_cumulative
+    goes below 0 or above capacity at some point that day) if that single
+    fixed baseline were used every morning. Returns the baseline with the
+    fewest flagged days; ties go to the smaller baseline (fewer bikes to
+    place each morning, lower operations cost at system scale)."""
+    results = {}
+    for baseline in range(capacity, -1, -1):
+        flagged = 0
+        for day_cumulative in daily_cumulative_by_day.values():
+            absolute = baseline + day_cumulative
+            if (absolute > capacity).any() or (absolute < 0).any():
+                flagged += 1
+        results[baseline] = flagged
+
+    min_days = min(results.values())
+    best_candidates = [b for b, days in results.items() if days == min_days]
+    chosen = min(best_candidates)
+    return chosen, results
+
+
 # ---------- Main ETL ----------
 def run():
     os.makedirs(OUT_DIR, exist_ok=True)
@@ -322,11 +344,11 @@ def run():
 
     # Next phase: a pipeline will supply this station config instead of it
     # being hardcoded here. Capacity is from the GBFS station_information
-    # feed; baseline is an assumed bike count at 05:00 (data-checked for
-    # McGinley Square; a test assumption for Clinton St & 7 St, to revisit).
+    # feed. Baseline (assumed bike count at 05:00) is no longer hardcoded —
+    # find_optimal_baseline() searches for it fresh each run, per station.
     selected_stations = {
-        "JC055": {"capacity": 22, "baseline": 16},  # McGinley Square
-        "HB303": {"capacity": 18, "baseline": 12},  # Clinton St & 7 St
+        "JC055": {"capacity": 22},  # McGinley Square
+        "HB303": {"capacity": 18},  # Clinton St & 7 St
     }
     selected_station_ids = list(selected_stations.keys())
 
@@ -353,13 +375,20 @@ def run():
         ts["net_flow"] = ts["returns"] - ts["pickups"]
         ts["station_id"] = sid
         ts["station_name"] = id_to_name.get(sid, sid)
-        ts["capacity"] = selected_stations[sid]["capacity"]
-        ts["baseline"] = selected_stations[sid]["baseline"]
+        capacity = selected_stations[sid]["capacity"]
+        ts["capacity"] = capacity
         ts["date"] = ts.index.date
         ts["hour"] = ts.index.hour
         ts["minute"] = ts.index.minute
         ts["op_date"] = (ts.index - pd.Timedelta(hours=5)).date
         ts["daily_cumulative"] = ts.groupby("op_date")["net_flow"].cumsum()
+
+        # Auto-select the baseline that minimizes flagged days this month.
+        daily_cumulative_by_day = {d: g["daily_cumulative"] for d, g in ts.groupby("op_date")}
+        baseline, baseline_search = find_optimal_baseline(daily_cumulative_by_day, capacity)
+        print(f"  {sid}: auto-selected baseline={baseline} "
+              f"({baseline_search[baseline]} flagged days this month)")
+        ts["baseline"] = baseline
 
         # Precompute the bounds status per bucket, so the dashboard doesn't
         # need to re-derive the out-of-bounds definition itself. Absolute
