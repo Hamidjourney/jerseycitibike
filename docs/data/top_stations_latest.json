@@ -1,115 +1,115 @@
 {
-  "latest_month": "2026-06",
+  "latest_month": "2026-07",
   "top5": {
     "starts": {
       "casual": [
         {
-          "station_id": "JC115",
-          "station_name": "Grove St PATH",
-          "trips": 1081
-        },
-        {
           "station_id": "HB106",
           "station_name": "River St & Newark St",
-          "trips": 990
+          "trips": 1007
         },
         {
-          "station_id": "HB101",
-          "station_name": "Hoboken Terminal - Hudson St & Hudson Pl",
-          "trips": 908
-        },
-        {
-          "station_id": "HB201",
-          "station_name": "12 St & Sinatra Dr N",
-          "trips": 850
+          "station_id": "JC115",
+          "station_name": "Grove St PATH",
+          "trips": 983
         },
         {
           "station_id": "HB103",
           "station_name": "South Waterfront Walkway - Sinatra Dr & 1 St",
-          "trips": 823
+          "trips": 906
+        },
+        {
+          "station_id": "HB201",
+          "station_name": "12 St & Sinatra Dr N",
+          "trips": 865
+        },
+        {
+          "station_id": "HB101",
+          "station_name": "Hoboken Terminal - Hudson St & Hudson Pl",
+          "trips": 796
         }
       ],
       "member": [
         {
           "station_id": "JC115",
           "station_name": "Grove St PATH",
-          "trips": 4171
+          "trips": 4023
         },
         {
           "station_id": "HB106",
           "station_name": "River St & Newark St",
-          "trips": 2713
+          "trips": 2489
         },
         {
           "station_id": "JC109",
           "station_name": "Bergen Ave & Sip Ave",
-          "trips": 2054
+          "trips": 2050
         },
         {
           "station_id": "JC009",
           "station_name": "Hamilton Park",
-          "trips": 1786
+          "trips": 1841
         },
         {
-          "station_id": "HB101",
-          "station_name": "Hoboken Terminal - Hudson St & Hudson Pl",
-          "trips": 1719
+          "station_id": "JC013",
+          "station_name": "Marin Light Rail",
+          "trips": 1602
         }
       ]
     },
     "ends": {
       "casual": [
         {
-          "station_id": "HB101",
-          "station_name": "Hoboken Terminal - Hudson St & Hudson Pl",
-          "trips": 945
-        },
-        {
-          "station_id": "HB201",
-          "station_name": "12 St & Sinatra Dr N",
-          "trips": 945
+          "station_id": "HB103",
+          "station_name": "South Waterfront Walkway - Sinatra Dr & 1 St",
+          "trips": 883
         },
         {
           "station_id": "JC115",
           "station_name": "Grove St PATH",
-          "trips": 941
+          "trips": 863
         },
         {
           "station_id": "HB106",
           "station_name": "River St & Newark St",
-          "trips": 877
+          "trips": 856
         },
         {
-          "station_id": "HB103",
-          "station_name": "South Waterfront Walkway - Sinatra Dr & 1 St",
-          "trips": 847
+          "station_id": "HB202",
+          "station_name": "14 St Ferry - 14 St & Shipyard Ln",
+          "trips": 849
+        },
+        {
+          "station_id": "HB201",
+          "station_name": "12 St & Sinatra Dr N",
+          "trips": 832
         }
       ],
       "member": [
         {
           "station_id": "JC115",
           "station_name": "Grove St PATH",
-          "trips": 4323
+          "trips": 4107
         },
         {
           "station_id": "HB106",
           "station_name": "River St & Newark St",
-          "trips": 3011
+          "trips": 2887
         },
         {
           "station_id": "JC109",
           "station_name": "Bergen Ave & Sip Ave",
-          "trips": 1901
+          "trips": 1843
         },
         {
           "station_id": "JC009",
           "station_name": "Hamilton Park",
-          "trips": 1791
+          "trips": 1783
         },
         {
           "station_id": "JC116",
           "station_name": "Exchange Pl",
-          "trips": 1691
+          "trips": 1593
         }
       ]
     }
@@ -117,106 +117,106 @@
   "net_flow": {
     "casual": [
       {
-        "station_id": "JC115",
-        "station_name": "Grove St PATH",
-        "net": 140
-      },
-      {
         "station_id": "HB106",
         "station_name": "River St & Newark St",
-        "net": 113
-      },
-      {
-        "station_id": "JC116",
-        "station_name": "Exchange Pl",
-        "net": 110
+        "net": 151
       },
       {
         "station_id": "JC055",
         "station_name": "McGinley Square",
-        "net": 90
-      },
-      {
-        "station_id": "HB402",
-        "station_name": "Madison St & 1 St",
-        "net": 65
-      },
-      {
-        "station_id": "HB203",
-        "station_name": "Bloomfield St & 15 St",
-        "net": -67
-      },
-      {
-        "station_id": "HB501",
-        "station_name": "Columbus Park - Clinton St & 9 St",
-        "net": -75
-      },
-      {
-        "station_id": "HB105",
-        "station_name": "City Hall - Washington St & 1 St",
-        "net": -77
-      },
-      {
-        "station_id": "JC109",
-        "station_name": "Bergen Ave & Sip Ave",
-        "net": -85
-      },
-      {
-        "station_id": "HB201",
-        "station_name": "12 St & Sinatra Dr N",
-        "net": -95
-      }
-    ],
-    "member": [
-      {
-        "station_id": "JC022",
-        "station_name": "Oakland Ave",
-        "net": 186
-      },
-      {
-        "station_id": "JC109",
-        "station_name": "Bergen Ave & Sip Ave",
-        "net": 153
-      },
-      {
-        "station_id": "HB201",
-        "station_name": "12 St & Sinatra Dr N",
-        "net": 102
-      },
-      {
-        "station_id": "HB105",
-        "station_name": "City Hall - Washington St & 1 St",
-        "net": 80
-      },
-      {
-        "station_id": "HB501",
-        "station_name": "Columbus Park - Clinton St & 9 St",
-        "net": 77
-      },
-      {
-        "station_id": "JC035",
-        "station_name": "Van Vorst Park",
-        "net": -46
-      },
-      {
-        "station_id": "HB402",
-        "station_name": "Madison St & 1 St",
-        "net": -70
-      },
-      {
-        "station_id": "JC116",
-        "station_name": "Exchange Pl",
-        "net": -84
+        "net": 132
       },
       {
         "station_id": "JC115",
         "station_name": "Grove St PATH",
-        "net": -152
+        "net": 120
+      },
+      {
+        "station_id": "HB609",
+        "station_name": "River St & 1 St",
+        "net": 81
+      },
+      {
+        "station_id": "HB302",
+        "station_name": "6 St & Grand St",
+        "net": 73
+      },
+      {
+        "station_id": "HB612",
+        "station_name": "Newark St & Washington St",
+        "net": -72
+      },
+      {
+        "station_id": "HB203",
+        "station_name": "Bloomfield St & 15 St",
+        "net": -76
+      },
+      {
+        "station_id": "HB202",
+        "station_name": "14 St Ferry - 14 St & Shipyard Ln",
+        "net": -101
+      },
+      {
+        "station_id": "HB105",
+        "station_name": "City Hall - Washington St & 1 St",
+        "net": -126
+      },
+      {
+        "station_id": "JC109",
+        "station_name": "Bergen Ave & Sip Ave",
+        "net": -129
+      }
+    ],
+    "member": [
+      {
+        "station_id": "JC109",
+        "station_name": "Bergen Ave & Sip Ave",
+        "net": 207
+      },
+      {
+        "station_id": "JC022",
+        "station_name": "Oakland Ave",
+        "net": 145
+      },
+      {
+        "station_id": "HB202",
+        "station_name": "14 St Ferry - 14 St & Shipyard Ln",
+        "net": 129
+      },
+      {
+        "station_id": "HB105",
+        "station_name": "City Hall - Washington St & 1 St",
+        "net": 120
+      },
+      {
+        "station_id": "HB612",
+        "station_name": "Newark St & Washington St",
+        "net": 90
+      },
+      {
+        "station_id": "HB302",
+        "station_name": "6 St & Grand St",
+        "net": -57
+      },
+      {
+        "station_id": "JC035",
+        "station_name": "Van Vorst Park",
+        "net": -63
+      },
+      {
+        "station_id": "HB409",
+        "station_name": "Clinton St & Newark St",
+        "net": -68
+      },
+      {
+        "station_id": "JC115",
+        "station_name": "Grove St PATH",
+        "net": -84
       },
       {
         "station_id": "HB106",
         "station_name": "River St & Newark St",
-        "net": -298
+        "net": -398
       }
     ]
   }
